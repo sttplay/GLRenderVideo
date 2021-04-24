@@ -1,0 +1,5 @@
+bin/*.*
+src/.vs
+src/RenderVideo/Debug
+src/RenderVideo/Release
+src/RenderVideo/x64
