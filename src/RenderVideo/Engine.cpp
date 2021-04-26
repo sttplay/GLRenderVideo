@@ -27,6 +27,10 @@ Engine::~Engine()
 
 bool Engine::Initialize(std::string window_title, int width, int height, int nCmdShow)
 {
+	this->window_title = window_title;
+	this->window_title_wide = std::wstring(window_title.begin(), window_title.end());
+	this->width = width;
+	this->height = height;
 	int nWindMetricsX = GetSystemMetrics(SM_CXSCREEN);
 	int nWindMetricsY = GetSystemMetrics(SM_CYSCREEN);
 	RECT wr;
@@ -55,6 +59,7 @@ bool Engine::Initialize(std::string window_title, int width, int height, int nCm
 	);
 	if (!handle)
 		throw;
+	OnStart();
 	ShowWindow(handle, nCmdShow);
 	UpdateWindow(handle);
 	SetForegroundWindow(handle);
@@ -68,7 +73,7 @@ bool Engine::RegisterWindowsClass()
 	ZeroMemory(&wcex, sizeof(WNDCLASSEX));
 	wcex.cbSize = sizeof(WNDCLASSEX);
 	wcex.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
-	wcex.lpfnWndProc = DefWindowProc;
+	wcex.lpfnWndProc = HandleMessageSetup;
 	wcex.cbClsExtra = 0;
 	wcex.cbWndExtra = 0;
 	wcex.hInstance = hInstance;
@@ -108,4 +113,62 @@ bool Engine::ProcessMessage()
 	if (!handle)
 		return false;
 	return true;
+}
+
+void Engine::Close()
+{
+	SendMessage(handle, WM_CLOSE, 0, 0);
+}
+
+LRESULT Engine::HandleMessageSetup(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	switch (uMsg)
+	{
+	case WM_NCCREATE:
+	{
+		const CREATESTRUCT * pCreate = reinterpret_cast<CREATESTRUCT*>(lParam);
+		Engine *engine = reinterpret_cast<Engine*>(pCreate->lpCreateParams);
+		if (!engine)
+			throw;
+		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(engine));
+		SetWindowLongPtr(hwnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(HandleMsgRedirect));
+		return DefWindowProc(hwnd, uMsg, wParam, lParam);
+	}
+	default:
+		return DefWindowProc(hwnd, uMsg, wParam, lParam);
+	}
+}
+
+LRESULT Engine::HandleMsgRedirect(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	Engine *engine = reinterpret_cast<Engine*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+	return engine->WinProc(hwnd, uMsg, wParam, lParam);
+}
+
+LRESULT Engine::WinProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+	switch (uMsg)
+	{
+	case WM_CLOSE:
+		DestroyWindow(hwnd);
+		this->handle = NULL;
+		OnClose();
+		return 0;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+	default:
+		return DefWindowProc(hwnd, uMsg, wParam, lParam);
+	}
+	return DefWindowProc(hwnd, uMsg, wParam, lParam);
+}
+
+void Engine::OnStart()
+{
+
+}
+
+void Engine::OnClose()
+{
+
 }

@@ -15,6 +15,21 @@ public:
 
 	bool ProcessMessage();
 
+
+	void Close();
+
+private:
+
+	static LRESULT CALLBACK HandleMessageSetup(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+	static LRESULT HandleMsgRedirect(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+	LRESULT WinProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+
+	void OnStart();
+
+	void OnClose();
+
 private:
 	HWND handle;
 	HINSTANCE hInstance;
