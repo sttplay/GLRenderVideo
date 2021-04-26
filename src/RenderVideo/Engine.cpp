@@ -1,4 +1,5 @@
 #include "Engine.h"
+#include "GLRenderer.h"
 
 Engine::Engine(HINSTANCE hInstance, std::string window_class)
 {
@@ -17,7 +18,7 @@ Engine::~Engine()
 #else
 		this->window_class.c_str(),
 #endif // UNICODE
-		
+
 		hInstance
 	))
 	{
@@ -120,6 +121,12 @@ void Engine::Close()
 	SendMessage(handle, WM_CLOSE, 0, 0);
 }
 
+void Engine::Renderer()
+{
+	if (renderer)
+		renderer->Renderer();
+}
+
 LRESULT Engine::HandleMessageSetup(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg)
@@ -157,6 +164,11 @@ LRESULT Engine::WinProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		return 0;
+	case WM_SIZE:
+		RECT rect;
+		GetClientRect(hwnd, &rect);
+		renderer->Resize(rect.right - rect.left, rect.bottom - rect.top);
+		return 0;
 	default:
 		return DefWindowProc(hwnd, uMsg, wParam, lParam);
 	}
@@ -165,10 +177,15 @@ LRESULT Engine::WinProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 
 void Engine::OnStart()
 {
-
+	if (renderer)
+		delete renderer;
+	renderer = NULL;
+	renderer = new GLRenderer(handle, width, height);
 }
 
 void Engine::OnClose()
 {
-
+	if (renderer)
+		delete renderer;
+	renderer = NULL;
 }

@@ -1,6 +1,8 @@
 #pragma once
 #include <windows.h>
 #include <string>
+
+class GLRenderer;
 class Engine
 {
 public:
@@ -17,6 +19,9 @@ public:
 
 
 	void Close();
+
+
+	void Renderer();
 
 private:
 
@@ -39,5 +44,7 @@ private:
 	std::wstring window_class_wide;
 	int width;
 	int height;
+
+	GLRenderer *renderer = nullptr;
 };
 
