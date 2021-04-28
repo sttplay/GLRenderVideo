@@ -3,3 +3,5 @@ src/.vs
 src/RenderVideo/Debug
 src/RenderVideo/Release
 src/RenderVideo/x64
+src/QtRendererVideo/GeneratedFiles
+src/QtRendererVideo/x64
