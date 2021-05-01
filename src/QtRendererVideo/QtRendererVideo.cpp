@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <QResizeEvent>
 #include "QtEvent.h"
+#include "GLTools.h"
 #pragma comment(lib, "glew32.lib")
 #pragma comment(lib, "opengl32.lib")
 QtRendererVideo::QtRendererVideo(QWidget *parent)
@@ -81,6 +82,8 @@ void QtRendererVideo::Renderer()
 
 void QtRendererVideo::InitializeGL()
 {
+	CompileShader(GL_VERTEX_SHADER, "assets/vertexShader.glsl");
+	CompileShader(GL_FRAGMENT_SHADER, "assets/fragmentShader.glsl");
 	glGenBuffers(
 		1, //创建VBO的个数
 		&VBO
@@ -99,6 +102,35 @@ void QtRendererVideo::InitializeGL()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	assert(!glGetError());
+}
+
+GLuint QtRendererVideo::CompileShader(GLenum shaderType, const char *url)
+{
+	char *shaderCode = LoadFileContext(url);
+	char *shaderTypeStr = "Vertex Shader";
+	if (shaderType == GL_FRAGMENT_SHADER)
+	{
+		shaderTypeStr = "Fragment Shader";
+	}
+	GLuint shader = glCreateShader(shaderType);
+	if (!shader)
+		throw;
+	glShaderSource(shader, 1, &shaderCode, NULL);
+	glCompileShader(shader);
+	GLint success = GL_TRUE;
+	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+	if (!success)
+	{
+		char infolog[1024];
+		GLsizei logLen = 0;
+		glGetShaderInfoLog(shader, sizeof(infolog), &logLen, infolog);
+		printf("[ERROR] Compile %s error: %s", shaderTypeStr, infolog);
+		glDeleteShader(shader);
+		throw;
+	}
+	printf("Compile Success");
+	delete shaderCode;
+	return shader;
 }
 
 bool QtRendererVideo::event(QEvent* event)

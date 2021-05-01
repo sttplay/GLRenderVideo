@@ -29,6 +29,7 @@ private:
 
 	void InitializeGL();
 
+	GLuint CompileShader(GLenum shaderType, const char *url);
 private:
 	Ui::QtRendererVideoClass ui;
 

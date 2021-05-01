@@ -113,6 +113,7 @@
     </QtRcc>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GLTools.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="QtRendererVideo.cpp" />
   </ItemGroup>
@@ -126,6 +127,7 @@
     <QtRcc Include="QtRendererVideo.qrc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GLTools.h" />
     <ClInclude Include="QtEvent.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
