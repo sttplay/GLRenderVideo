@@ -1,5 +1,4 @@
 #include "QtRendererVideo.h"
-#include <GL/eglew.h>
 #include <assert.h>
 #include <QResizeEvent>
 #include "QtEvent.h"
@@ -16,6 +15,8 @@ QtRendererVideo::QtRendererVideo(QWidget *parent)
 	CreateGLContext();
 	wglMakeCurrent(dc, rc);
 	assert(glewInit() == GLEW_OK);
+
+	InitializeGL();
 }
 
 QtRendererVideo::~QtRendererVideo()
@@ -76,6 +77,28 @@ void QtRendererVideo::Renderer()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	SwapBuffers(dc);
+}
+
+void QtRendererVideo::InitializeGL()
+{
+	glGenBuffers(
+		1, //创建VBO的个数
+		&VBO
+	);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	int size = sizeof(vertices);
+	glBufferData(
+		GL_ARRAY_BUFFER, //缓冲类型
+		size, //数据量的大小
+		vertices,//顶点数据
+		GL_STATIC_DRAW
+	);
+	//GL_STATIC_DRAW//数据几乎不会改变
+	//GL_DYNAMIC_DRAW 数据可能会发生改变
+	//GL_STREAM_DRAW 每次绘制数据都会发生改变
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	assert(!glGetError());
 }
 
 bool QtRendererVideo::event(QEvent* event)

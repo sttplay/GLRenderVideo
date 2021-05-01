@@ -3,6 +3,7 @@
 #include <QtWidgets/QWidget>
 #include "ui_QtRendererVideo.h"
 #include <windows.h>
+#include <GL/eglew.h>
 
 class QtRendererVideo : public QWidget
 {
@@ -26,6 +27,8 @@ private:
 
 	bool event(QEvent* event);
 
+	void InitializeGL();
+
 private:
 	Ui::QtRendererVideoClass ui;
 
@@ -33,5 +36,11 @@ private:
 	HGLRC rc;
 	HWND hwnd;
 
+	float vertices[9] = {
+	0.0f,	0.5f,	0.0f,
+	-0.5f,	-0.5f,	0.0f,
+	0.5f,	-0.5f,	0.0f
+	};
 
+	GLuint VBO;
 };
