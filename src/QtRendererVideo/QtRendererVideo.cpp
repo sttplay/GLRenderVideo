@@ -82,8 +82,7 @@ void QtRendererVideo::Renderer()
 
 void QtRendererVideo::InitializeGL()
 {
-	CompileShader(GL_VERTEX_SHADER, "assets/vertexShader.glsl");
-	CompileShader(GL_FRAGMENT_SHADER, "assets/fragmentShader.glsl");
+	GLuint program = CreateGPUProgram("assets/vertexShader.glsl", "assets/fragmentShader.glsl");
 	glGenBuffers(
 		1, //创建VBO的个数
 		&VBO
@@ -131,6 +130,35 @@ GLuint QtRendererVideo::CompileShader(GLenum shaderType, const char *url)
 	printf("Compile Success");
 	delete shaderCode;
 	return shader;
+}
+
+GLuint QtRendererVideo::CreateGPUProgram(const char* vs, const char *fs)
+{
+	GLuint vsShader = CompileShader(GL_VERTEX_SHADER, vs);
+	GLuint fsShader = CompileShader(GL_FRAGMENT_SHADER, fs);
+
+	GLuint shaderProgram = glCreateProgram();
+	glAttachShader(shaderProgram, vsShader);
+	glAttachShader(shaderProgram, fsShader);
+	glLinkProgram(shaderProgram);
+
+	GLint success = GL_TRUE;
+	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+	if (!success)
+	{
+		char infolog[1024];
+		GLsizei logLen = 0;
+		glGetShaderInfoLog(shaderProgram, sizeof(infolog), &logLen, infolog);
+		printf("[ERROR] Link error: %s", infolog);
+		glDeleteProgram(shaderProgram);
+		throw;
+	}
+	printf("Line shader program success\n");
+	glDetachShader(shaderProgram, vsShader);
+	glDetachShader(shaderProgram, fsShader);
+	glDeleteShader(vsShader);
+	glDeleteShader(fsShader);
+	return shaderProgram;
 }
 
 bool QtRendererVideo::event(QEvent* event)

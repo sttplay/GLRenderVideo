@@ -30,6 +30,8 @@ private:
 	void InitializeGL();
 
 	GLuint CompileShader(GLenum shaderType, const char *url);
+
+	GLuint CreateGPUProgram(const char* vs, const char *fs);
 private:
 	Ui::QtRendererVideoClass ui;
 
