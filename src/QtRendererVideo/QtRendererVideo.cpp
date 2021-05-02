@@ -68,21 +68,15 @@ bool QtRendererVideo::CreateGLContext()
 	return true;
 }
 
-void QtRendererVideo::Renderer()
-{
-	static float redv = 0;
-	redv += 0.01;
-	if (redv > 1)
-		redv = 0;
-	glClearColor(redv, 0.0f, 0.0f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	SwapBuffers(dc);
-}
 
 void QtRendererVideo::InitializeGL()
 {
 	GLuint program = CreateGPUProgram("assets/vertexShader.glsl", "assets/fragmentShader.glsl");
+	glUseProgram(program);
+	GLint posLocation = glGetAttribLocation(program, "pos");
+
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
 	glGenBuffers(
 		1, //创建VBO的个数
 		&VBO
@@ -98,8 +92,24 @@ void QtRendererVideo::InitializeGL()
 	//GL_STATIC_DRAW//数据几乎不会改变
 	//GL_DYNAMIC_DRAW 数据可能会发生改变
 	//GL_STREAM_DRAW 每次绘制数据都会发生改变
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+	//启用顶点属性
+	glEnableVertexAttribArray(posLocation);
+	glVertexAttribPointer(
+		posLocation, //顶点属性ID
+		3, //几个数据构成一组
+		GL_FLOAT, //数据类型
+		GL_FALSE,
+		sizeof(float) * 3, //步长
+		(void*)(sizeof(float) * 0) //偏移量，第一组数据的起始位置
+	);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+
+	//启用面剔除
+	//glEnable(GL_CULL_FACE);
+	//glCullFace(GL_FRONT);
+	glPolygonMode(GL_FRONT, GL_FILL);
 	assert(!glGetError());
 }
 
@@ -169,4 +179,15 @@ bool QtRendererVideo::event(QEvent* event)
 		Renderer();
 	}
 	return QWidget::event(event);
+}
+
+void QtRendererVideo::Renderer()
+{
+
+	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glBindVertexArray(VAO);
+	glDrawArrays(GL_TRIANGLES, 0, 3);
+	SwapBuffers(dc);
 }
