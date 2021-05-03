@@ -39,11 +39,18 @@ private:
 	HGLRC rc;
 	HWND hwnd;
 
-	float vertices[9] = {
-	0.0f,	0.5f,	0.0f,
-	-0.5f,	-0.5f,	0.0f,
-	0.5f,	-0.5f,	0.0f
+	float vertices[24] = {
+	//¶¥µã						ÑÕÉ«
+	-0.5f,	0.5f,	0.0f,	1.0f, 0.0f, 0.0f,	//left top
+	-0.5f,	-0.5f,	0.0f,	0.0f, 1.0f, 0.0f,	//left bottom
+	0.5f,	-0.5f,	0.0f,	0.0f, 0.0f, 1.0f,	//right bottom
+	0.5f,	0.5f,	0.0f,	1.0f, 1.0f, 0.0f	//right top
 	};
 
-	GLuint VBO, VAO;
+	GLuint indices[6] = {
+		0,1,2,
+		0,2,3
+	};
+
+	GLuint VBO, VAO, EBO;
 };

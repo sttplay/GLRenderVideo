@@ -74,6 +74,7 @@ void QtRendererVideo::InitializeGL()
 	GLuint program = CreateGPUProgram("assets/vertexShader.glsl", "assets/fragmentShader.glsl");
 	glUseProgram(program);
 	GLint posLocation = glGetAttribLocation(program, "pos");
+	GLint colorLocation = glGetAttribLocation(program, "color");
 
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
@@ -100,9 +101,17 @@ void QtRendererVideo::InitializeGL()
 		3, //几个数据构成一组
 		GL_FLOAT, //数据类型
 		GL_FALSE,
-		sizeof(float) * 3, //步长
+		sizeof(float) * 6, //步长
 		(void*)(sizeof(float) * 0) //偏移量，第一组数据的起始位置
 	);
+	//启用顶点属性
+	glEnableVertexAttribArray(colorLocation);
+	glVertexAttribPointer(colorLocation, 3, GL_FLOAT, GL_FALSE,sizeof(float) * 6, (void*)(sizeof(float) * 3));
+
+	glGenBuffers(1, &EBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
@@ -188,6 +197,8 @@ void QtRendererVideo::Renderer()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glBindVertexArray(VAO);
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+	//glDrawArrays(GL_TRIANGLES, 0, 6);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
 	SwapBuffers(dc);
 }
