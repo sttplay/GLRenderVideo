@@ -39,12 +39,12 @@ private:
 	HGLRC rc;
 	HWND hwnd;
 
-	float vertices[24] = {
-	//顶点						颜色
-	-0.5f,	0.5f,	0.0f,	1.0f, 0.0f, 0.0f,	//left top
-	-0.5f,	-0.5f,	0.0f,	0.0f, 1.0f, 0.0f,	//left bottom
-	0.5f,	-0.5f,	0.0f,	0.0f, 0.0f, 1.0f,	//right bottom
-	0.5f,	0.5f,	0.0f,	1.0f, 1.0f, 0.0f	//right top
+	float vertices[32] = {
+	//顶点						颜色				texcoord uv
+	-0.5f,	0.5f,	0.0f,	1.0f, 0.0f, 0.0f,	0.0f, 1.0f,		//left top
+	-0.5f,	-0.5f,	0.0f,	0.0f, 1.0f, 0.0f,	0.0f, 0.0f,		//left bottom
+	0.5f,	-0.5f,	0.0f,	0.0f, 0.0f, 1.0f,	1.0f, 0.0f,		//right bottom
+	0.5f,	0.5f,	0.0f,	1.0f, 1.0f, 0.0f,	1.0f, 1.0f,		//right top
 	};
 
 	GLuint indices[6] = {
@@ -52,5 +52,8 @@ private:
 		0,2,3
 	};
 
+	GLuint program;
 	GLuint VBO, VAO, EBO;
+	GLuint tex1, tex2;
+	GLuint smp1, smp2;
 };

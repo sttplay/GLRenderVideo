@@ -71,10 +71,14 @@ bool QtRendererVideo::CreateGLContext()
 
 void QtRendererVideo::InitializeGL()
 {
-	GLuint program = CreateGPUProgram("assets/vertexShader.glsl", "assets/fragmentShader.glsl");
-	glUseProgram(program);
+	program = CreateGPUProgram("assets/vertexShader.glsl", "assets/fragmentShader.glsl");
+
 	GLint posLocation = glGetAttribLocation(program, "pos");
 	GLint colorLocation = glGetAttribLocation(program, "color");
+	GLint texcoordLocation = glGetAttribLocation(program, "texcoord");
+
+	smp1 = glGetUniformLocation(program, "smp1");
+	smp2 = glGetUniformLocation(program, "smp2");
 
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
@@ -101,12 +105,16 @@ void QtRendererVideo::InitializeGL()
 		3, //几个数据构成一组
 		GL_FLOAT, //数据类型
 		GL_FALSE,
-		sizeof(float) * 6, //步长
+		sizeof(float) * 8, //步长
 		(void*)(sizeof(float) * 0) //偏移量，第一组数据的起始位置
 	);
 	//启用顶点属性
 	glEnableVertexAttribArray(colorLocation);
-	glVertexAttribPointer(colorLocation, 3, GL_FLOAT, GL_FALSE,sizeof(float) * 6, (void*)(sizeof(float) * 3));
+	glVertexAttribPointer(colorLocation, 3, GL_FLOAT, GL_FALSE,sizeof(float) * 8, (void*)(sizeof(float) * 3));
+
+	//启用顶点属性
+	glEnableVertexAttribArray(texcoordLocation);
+	glVertexAttribPointer(texcoordLocation, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)(sizeof(float) * 6));
 
 	glGenBuffers(1, &EBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
@@ -114,6 +122,52 @@ void QtRendererVideo::InitializeGL()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+
+	glGenTextures(1, &tex1);
+	glBindTexture(GL_TEXTURE_2D, tex1);
+	//设置环绕方式
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	//设置过滤方式
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	QImage img = QImage("assets/tex1.jpg");
+	glTexImage2D(
+		GL_TEXTURE_2D, //纹理类型
+		0, //多级渐远纹理级别
+		GL_RGBA, //纹理的格式
+		img.width(),
+		img.height(),
+		0,
+		GL_BGRA, //数据的格式
+		GL_UNSIGNED_BYTE,
+		img.bits()
+	);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	glGenTextures(1, &tex2);
+	glBindTexture(GL_TEXTURE_2D, tex2);
+	//设置环绕方式
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	//设置过滤方式
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	QImage img2 = QImage("assets/lollogo.png");
+	glTexImage2D(
+		GL_TEXTURE_2D, //纹理类型
+		0, //多级渐远纹理级别
+		GL_RGBA, //纹理的格式
+		img2.width(),
+		img2.height(),
+		0,
+		GL_BGRA, //数据的格式
+		GL_UNSIGNED_BYTE,
+		img2.bits()
+	);
+	glGenerateMipmap(GL_TEXTURE_2D);
 
 	//启用面剔除
 	//glEnable(GL_CULL_FACE);
@@ -195,6 +249,15 @@ void QtRendererVideo::Renderer()
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glUseProgram(program);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, tex1);
+	glUniform1i(smp1, 0);
+
+	glActiveTexture(GL_TEXTURE5);
+	glBindTexture(GL_TEXTURE_2D, tex2);
+	glUniform1i(smp2, 5);
 
 	glBindVertexArray(VAO);
 	//glDrawArrays(GL_TRIANGLES, 0, 6);
