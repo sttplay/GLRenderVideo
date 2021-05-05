@@ -3,7 +3,7 @@
 #include <QtWidgets/QWidget>
 #include "ui_QtRendererVideo.h"
 #include <windows.h>
-#include <GL/eglew.h>
+#include "GLTools.h"
 
 class QtRendererVideo : public QWidget
 {
@@ -29,9 +29,6 @@ private:
 
 	void InitializeGL();
 
-	GLuint CompileShader(GLenum shaderType, const char *url);
-
-	GLuint CreateGPUProgram(const char* vs, const char *fs);
 private:
 	Ui::QtRendererVideoClass ui;
 
