@@ -53,4 +53,8 @@ private:
 	GLuint VBO, VAO, EBO;
 	GLuint tex1, tex2;
 	GLuint smp1, smp2;
+
+	GLuint modelLocation;
+	GLuint viewLocation;
+	GLuint projLocation;
 };
