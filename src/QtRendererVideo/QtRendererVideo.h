@@ -4,6 +4,7 @@
 #include "ui_QtRendererVideo.h"
 #include <windows.h>
 #include "GLTools.h"
+#include "Camera.h"
 
 class QtRendererVideo : public QWidget
 {
@@ -57,4 +58,6 @@ private:
 	GLuint modelLocation;
 	GLuint viewLocation;
 	GLuint projLocation;
+
+	Camera camera;
 };

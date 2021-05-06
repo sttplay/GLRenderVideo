@@ -113,6 +113,7 @@
     </QtRcc>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Camera.cpp" />
     <ClCompile Include="GLTools.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="QtRendererVideo.cpp" />
@@ -127,6 +128,7 @@
     <QtRcc Include="QtRendererVideo.qrc" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="GLTools.h" />
     <ClInclude Include="QtEvent.h" />
   </ItemGroup>

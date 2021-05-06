@@ -3,7 +3,6 @@
 #include "QtEvent.h"
 #include "GLTools.h"
 #include <QDebug>
-#include <QMatrix4x4>
 #pragma comment(lib, "glew32.lib")
 #pragma comment(lib, "opengl32.lib")
 QtRendererVideo::QtRendererVideo(QWidget *parent)
@@ -166,19 +165,18 @@ void QtRendererVideo::Renderer()
 	glUniform1i(smp2, 5);
 
 	QMatrix4x4 modelMat;
-	QMatrix4x4 viewMat;
 	QMatrix4x4 projMat;
 
 	modelMat.translate(0, 0, -2);
 	modelMat.rotate(30, QVector3D(0, 0, 1));
 	modelMat.scale(2, 1, 1);
 
-	QVector3D eyePoint = QVector3D(0, 0, 0);
-	viewMat.lookAt(eyePoint, eyePoint + QVector3D(0, 0, -1), QVector3D(0, 1, 0));
+	
 	projMat.perspective(45, width() / (float)height(), 0.1f, 100);
 
+	camera.SetRotation(0, 180, 0);
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, modelMat.constData());
-	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, viewMat.constData());
+	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, camera.GetViewMat().constData());
 	glUniformMatrix4fv(projLocation, 1, GL_FALSE, projMat.constData());
 	glBindVertexArray(VAO);
 	//glDrawArrays(GL_TRIANGLES, 0, 6);
