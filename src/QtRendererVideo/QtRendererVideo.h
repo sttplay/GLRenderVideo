@@ -20,6 +20,17 @@ public:
 	virtual void resizeEvent(QResizeEvent *event);
 
 	void GLUpdate();
+
+	void showEvent(QShowEvent *event);
+
+	void keyPressEvent(QKeyEvent *event);
+
+	void keyReleaseEvent(QKeyEvent *event);
+
+	void mousePressEvent(QMouseEvent *event);
+
+	void mouseMoveEvent(QMouseEvent *event);
+
 private:
 
 	bool CreateGLContext();
@@ -30,6 +41,8 @@ private:
 
 	void InitializeGL();
 
+private slots:
+	void Tick();
 private:
 	Ui::QtRendererVideoClass ui;
 
@@ -60,4 +73,10 @@ private:
 	GLuint projLocation;
 
 	Camera camera;
+
+	bool isPressW = false, isPressS = false, isPressA = false, isPressD = false, isPressQ = false, isPressE = false;
+	float speed = 1.0f;
+	float rotateSpeed = 0.2f;
+
+	QPoint lastPoint;
 };

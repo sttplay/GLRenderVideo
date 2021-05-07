@@ -3,6 +3,8 @@
 #include "QtEvent.h"
 #include "GLTools.h"
 #include <QDebug>
+#include <QTimer>
+#include <QDateTime>
 #pragma comment(lib, "glew32.lib")
 #pragma comment(lib, "opengl32.lib")
 QtRendererVideo::QtRendererVideo(QWidget *parent)
@@ -21,6 +23,10 @@ QtRendererVideo::QtRendererVideo(QWidget *parent)
 		throw;
 	}
 
+	QTimer *timer = new QTimer(parent);
+	connect(timer, &QTimer::timeout, this, &QtRendererVideo::Tick);
+	timer->start(20);
+	camera.SetRotation(0, 180, 0);
 	InitializeGL();
 }
 
@@ -42,6 +48,56 @@ void QtRendererVideo::resizeEvent(QResizeEvent *event)
 void QtRendererVideo::GLUpdate()
 {
 	QApplication::postEvent(this, new QtEvent(QtEvent::GL_Renderer));
+}
+
+void QtRendererVideo::showEvent(QShowEvent *event)
+{
+	GLUpdate();
+}
+
+void QtRendererVideo::keyPressEvent(QKeyEvent *event)
+{
+	if (event->key() == Qt::Key_W)
+		isPressW = true;
+	if (event->key() == Qt::Key_S)
+		isPressS = true;
+	if (event->key() == Qt::Key_A)
+		isPressA = true;
+	if (event->key() == Qt::Key_D)
+		isPressD = true;
+	if (event->key() == Qt::Key_Q)
+		isPressQ = true;
+	if (event->key() == Qt::Key_E)
+		isPressE = true;
+}
+
+void QtRendererVideo::keyReleaseEvent(QKeyEvent *event)
+{
+	if (event->key() == Qt::Key_W)
+		isPressW = false;
+	if (event->key() == Qt::Key_S)
+		isPressS = false;
+	if (event->key() == Qt::Key_A)
+		isPressA = false;
+	if (event->key() == Qt::Key_D)
+		isPressD = false;
+	if (event->key() == Qt::Key_Q)
+		isPressQ = false;
+	if (event->key() == Qt::Key_E)
+		isPressE = false;
+}
+
+void QtRendererVideo::mousePressEvent(QMouseEvent *event)
+{
+	lastPoint = event->pos();
+}
+
+void QtRendererVideo::mouseMoveEvent(QMouseEvent *event)
+{
+	QPoint delta = event->pos() - lastPoint;
+	lastPoint = event->pos();
+	camera.Rotate(delta.y() * rotateSpeed, delta.x() * rotateSpeed, 0);
+	GLUpdate();
 }
 
 bool QtRendererVideo::CreateGLContext()
@@ -137,8 +193,8 @@ void QtRendererVideo::InitializeGL()
 	
 
 	//∆Ù”√√ÊÃﬁ≥˝
-	//glEnable(GL_CULL_FACE);
-	//glCullFace(GL_FRONT);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
 	glPolygonMode(GL_FRONT, GL_FILL);
 	GLenum errorCode = glGetError();
 	if (errorCode)
@@ -148,6 +204,29 @@ void QtRendererVideo::InitializeGL()
 	}
 }
 
+
+void QtRendererVideo::Tick()
+{
+	static long long lastts = 0;
+	if (lastts == 0) lastts = QDateTime::currentMSecsSinceEpoch();
+	float dt = QDateTime::currentMSecsSinceEpoch() - lastts;
+	lastts = QDateTime::currentMSecsSinceEpoch();
+	dt /= 1000;
+
+	if (isPressW)
+		camera.Translate(0, 0, speed * dt);
+	if (isPressS)
+		camera.Translate(0, 0, -speed * dt);
+	if (isPressA)
+		camera.Translate(-speed * dt, 0, 0);
+	if (isPressD)
+		camera.Translate(speed * dt, 0, 0);
+	if (isPressE)
+		camera.Translate(0, speed * dt, 0);
+	if (isPressQ)
+		camera.Translate(0, -speed * dt, 0);
+	GLUpdate();
+}
 
 void QtRendererVideo::Renderer()
 {
@@ -174,7 +253,6 @@ void QtRendererVideo::Renderer()
 	
 	projMat.perspective(45, width() / (float)height(), 0.1f, 100);
 
-	camera.SetRotation(0, 180, 0);
 	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, modelMat.constData());
 	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, camera.GetViewMat().constData());
 	glUniformMatrix4fv(projLocation, 1, GL_FALSE, projMat.constData());
