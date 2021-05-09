@@ -79,4 +79,6 @@ private:
 	float rotateSpeed = 0.2f;
 
 	QPoint lastPoint;
+
+	struct Mesh *mesh = NULL;
 };

@@ -158,7 +158,8 @@ void QtRendererVideo::InitializeGL()
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
 
-	VBO = CreateGLBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, sizeof(vertices), vertices);
+	mesh = LoadObjModel("assets/teapot.obj", true);
+	VBO = CreateGLBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, mesh->vertexCount * sizeof(Vertex), mesh->vertices);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
 	//启用顶点属性
@@ -182,7 +183,7 @@ void QtRendererVideo::InitializeGL()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
-	EBO = CreateGLBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, sizeof(indices), indices);
+	EBO = CreateGLBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, mesh->indexCount * sizeof(uint32_t), mesh->indices);
 
 	QImage img = QImage("assets/tex1.jpg");
 	tex1 = CreateGLTexture(GL_TEXTURE_2D, img.width(), img.height(), GL_RGBA, GL_BGRA, img.bits());
@@ -192,6 +193,7 @@ void QtRendererVideo::InitializeGL()
 
 	
 
+	glEnable(GL_DEPTH_TEST);
 	//启用面剔除
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -247,8 +249,8 @@ void QtRendererVideo::Renderer()
 	QMatrix4x4 projMat;
 
 	modelMat.translate(0, 0, -2);
-	modelMat.rotate(30, QVector3D(0, 0, 1));
-	modelMat.scale(2, 1, 1);
+	modelMat.rotate(0, QVector3D(0, 0, 1));
+	modelMat.scale(1, 1, 1);
 
 	
 	projMat.perspective(45, width() / (float)height(), 0.1f, 100);
@@ -257,8 +259,8 @@ void QtRendererVideo::Renderer()
 	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, camera.GetViewMat().constData());
 	glUniformMatrix4fv(projLocation, 1, GL_FALSE, projMat.constData());
 	glBindVertexArray(VAO);
-	//glDrawArrays(GL_TRIANGLES, 0, 6);
+	//glDrawArrays(GL_TRIANGLES, 0, mesh->vertexCount);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
+	glDrawElements(GL_TRIANGLES, mesh->indexCount, GL_UNSIGNED_INT, NULL);
 	SwapBuffers(dc);
 }
