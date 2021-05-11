@@ -117,6 +117,8 @@
     <ClCompile Include="GLTools.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="QtRendererVideo.cpp" />
+    <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="Texture2D.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="QtRendererVideo.h" />
@@ -131,6 +133,8 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="GLTools.h" />
     <ClInclude Include="QtEvent.h" />
+    <ClInclude Include="Shader.h" />
+    <ClInclude Include="Texture2D.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

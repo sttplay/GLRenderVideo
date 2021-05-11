@@ -260,3 +260,13 @@ Mesh* LoadObjModel(const char* url, bool isDropRepeat)
 	return mesh;
 }
 
+void CheckError()
+{
+	GLenum errorCode = glGetError();
+	if (errorCode)
+	{
+		printf("glGetError:%d\n", errorCode);
+		throw;
+	}
+}
+

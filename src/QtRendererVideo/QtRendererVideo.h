@@ -3,8 +3,9 @@
 #include <QtWidgets/QWidget>
 #include "ui_QtRendererVideo.h"
 #include <windows.h>
-#include "GLTools.h"
+#include "Shader.h"
 #include "Camera.h"
+#include "Texture2D.h"
 
 class QtRendererVideo : public QWidget
 {
@@ -50,27 +51,11 @@ private:
 	HGLRC rc;
 	HWND hwnd;
 
-	float vertices[32] = {
-	//¶¥µã						ÑÕÉ«				texcoord uv
-	-0.5f,	0.5f,	0.0f,	1.0f, 0.0f, 0.0f,	0.0f, 1.0f,		//left top
-	-0.5f,	-0.5f,	0.0f,	0.0f, 1.0f, 0.0f,	0.0f, 0.0f,		//left bottom
-	0.5f,	-0.5f,	0.0f,	0.0f, 0.0f, 1.0f,	1.0f, 0.0f,		//right bottom
-	0.5f,	0.5f,	0.0f,	1.0f, 1.0f, 0.0f,	1.0f, 1.0f,		//right top
-	};
 
-	GLuint indices[6] = {
-		0,1,2,
-		0,2,3
-	};
-
-	GLuint program;
+	Shader *shader = NULL;
 	GLuint VBO, VAO, EBO;
-	GLuint tex1, tex2;
-	GLuint smp1, smp2;
+	Texture2D* tex1, *tex2;
 
-	GLuint modelLocation;
-	GLuint viewLocation;
-	GLuint projLocation;
 
 	Camera camera;
 

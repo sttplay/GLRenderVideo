@@ -30,3 +30,5 @@ struct Mesh
 };
 
 Mesh* LoadObjModel(const char* url, bool isDropRepeat);
+
+void CheckError();

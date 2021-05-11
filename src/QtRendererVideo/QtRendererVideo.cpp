@@ -142,18 +142,8 @@ bool QtRendererVideo::event(QEvent* event)
 
 void QtRendererVideo::InitializeGL()
 {
-	program = CreateGPUProgram("assets/vertexShader.glsl", "assets/fragmentShader.glsl");
 
-	GLint posLocation = glGetAttribLocation(program, "pos");
-	GLint colorLocation = glGetAttribLocation(program, "color");
-	GLint texcoordLocation = glGetAttribLocation(program, "texcoord");
-
-	smp1 = glGetUniformLocation(program, "smp1");
-	smp2 = glGetUniformLocation(program, "smp2");
-
-	modelLocation = glGetUniformLocation(program, "modelMat");
-	viewLocation = glGetUniformLocation(program, "viewMat");
-	projLocation = glGetUniformLocation(program, "projMat");
+	shader = new Shader("assets/vertexShader.glsl", "assets/fragmentShader.glsl");
 
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
@@ -163,9 +153,9 @@ void QtRendererVideo::InitializeGL()
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
 	//启用顶点属性
-	glEnableVertexAttribArray(posLocation);
+	glEnableVertexAttribArray(shader->posLocation);
 	glVertexAttribPointer(
-		posLocation, //顶点属性ID
+		shader->posLocation, //顶点属性ID
 		3, //几个数据构成一组
 		GL_FLOAT, //数据类型
 		GL_FALSE,
@@ -173,12 +163,12 @@ void QtRendererVideo::InitializeGL()
 		(void*)(sizeof(float) * 0) //偏移量，第一组数据的起始位置
 	);
 	//启用顶点属性
-	glEnableVertexAttribArray(colorLocation);
-	glVertexAttribPointer(colorLocation, 3, GL_FLOAT, GL_FALSE,sizeof(float) * 8, (void*)(sizeof(float) * 3));
+	glEnableVertexAttribArray(shader->colorLocation);
+	glVertexAttribPointer(shader->colorLocation, 3, GL_FLOAT, GL_FALSE,sizeof(float) * 8, (void*)(sizeof(float) * 3));
 
 	//启用顶点属性
-	glEnableVertexAttribArray(texcoordLocation);
-	glVertexAttribPointer(texcoordLocation, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)(sizeof(float) * 6));
+	glEnableVertexAttribArray(shader->texcoordLocation);
+	glVertexAttribPointer(shader->texcoordLocation, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)(sizeof(float) * 6));
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
@@ -186,10 +176,10 @@ void QtRendererVideo::InitializeGL()
 	EBO = CreateGLBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, mesh->indexCount * sizeof(uint32_t), mesh->indices);
 
 	QImage img = QImage("assets/tex1.jpg");
-	tex1 = CreateGLTexture(GL_TEXTURE_2D, img.width(), img.height(), GL_RGBA, GL_BGRA, img.bits());
+	tex1 = new Texture2D(img.width(), img.height(), GL_RGBA, GL_BGRA, img.bits());
 	
 	QImage img2 = QImage("assets/lollogo.png");
-	tex2 = CreateGLTexture(GL_TEXTURE_2D, img2.width(), img2.height(), GL_RGBA, GL_BGRA, img2.bits());
+	tex2 = new Texture2D(img2.width(), img2.height(), GL_RGBA, GL_BGRA, img2.bits());
 
 	
 
@@ -198,12 +188,8 @@ void QtRendererVideo::InitializeGL()
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 	glPolygonMode(GL_FRONT, GL_FILL);
-	GLenum errorCode = glGetError();
-	if (errorCode)
-	{
-		qDebug() << "glGetError:" << errorCode;
-		throw;
-	}
+	
+	CheckError();
 }
 
 
@@ -236,14 +222,10 @@ void QtRendererVideo::Renderer()
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glUseProgram(program);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, tex1);
-	glUniform1i(smp1, 0);
+	shader->Apply();
+	shader->SetTexture2D("smp1", tex1);
+	shader->SetTexture2D("smp2", tex2);
 
-	glActiveTexture(GL_TEXTURE5);
-	glBindTexture(GL_TEXTURE_2D, tex2);
-	glUniform1i(smp2, 5);
 
 	QMatrix4x4 modelMat;
 	QMatrix4x4 projMat;
@@ -255,9 +237,9 @@ void QtRendererVideo::Renderer()
 	
 	projMat.perspective(45, width() / (float)height(), 0.1f, 100);
 
-	glUniformMatrix4fv(modelLocation, 1, GL_FALSE, modelMat.constData());
-	glUniformMatrix4fv(viewLocation, 1, GL_FALSE, camera.GetViewMat().constData());
-	glUniformMatrix4fv(projLocation, 1, GL_FALSE, projMat.constData());
+	glUniformMatrix4fv(shader->modelLocation, 1, GL_FALSE, modelMat.constData());
+	glUniformMatrix4fv(shader->viewLocation, 1, GL_FALSE, camera.GetViewMat().constData());
+	glUniformMatrix4fv(shader->projLocation, 1, GL_FALSE, projMat.constData());
 	glBindVertexArray(VAO);
 	//glDrawArrays(GL_TRIANGLES, 0, mesh->vertexCount);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
