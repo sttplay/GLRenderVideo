@@ -6,6 +6,7 @@
 #include "Shader.h"
 #include "Camera.h"
 #include "Texture2D.h"
+#include "Model.h"
 
 class QtRendererVideo : public QWidget
 {
@@ -52,10 +53,10 @@ private:
 	HWND hwnd;
 
 
-	Shader *shader = NULL;
-	GLuint VBO, VAO, EBO;
+	Shader *shader = NULL, *shader2 = NULL;
+	//GLuint VBO, VAO, EBO;
 	Texture2D* tex1, *tex2;
-
+	Model *model = NULL, *model2 = NULL;
 
 	Camera camera;
 
@@ -65,5 +66,5 @@ private:
 
 	QPoint lastPoint;
 
-	struct Mesh *mesh = NULL;
+	//struct Mesh *mesh = NULL;
 };

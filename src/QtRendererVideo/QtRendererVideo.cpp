@@ -144,36 +144,38 @@ void QtRendererVideo::InitializeGL()
 {
 
 	shader = new Shader("assets/vertexShader.glsl", "assets/fragmentShader.glsl");
+	shader2 = new Shader("assets/vertexShader.glsl", "assets/fragmentShader2.glsl");
+	model = new Model("assets/teapot.obj");
+	model2 = new Model("assets/quad.obj");
+	/*glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);*/
 
-	glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO);
+	/*mesh = LoadObjModel("assets/teapot.obj", true);
+	VBO = CreateGLBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, mesh->vertexCount * sizeof(Vertex), mesh->vertices);*/
+	//glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
-	mesh = LoadObjModel("assets/teapot.obj", true);
-	VBO = CreateGLBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, mesh->vertexCount * sizeof(Vertex), mesh->vertices);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	////启用顶点属性
+	//glEnableVertexAttribArray(shader->posLocation);
+	//glVertexAttribPointer(
+	//	shader->posLocation, //顶点属性ID
+	//	3, //几个数据构成一组
+	//	GL_FLOAT, //数据类型
+	//	GL_FALSE,
+	//	sizeof(float) * 8, //步长
+	//	(void*)(sizeof(float) * 0) //偏移量，第一组数据的起始位置
+	//);
+	////启用顶点属性
+	//glEnableVertexAttribArray(shader->colorLocation);
+	//glVertexAttribPointer(shader->colorLocation, 3, GL_FLOAT, GL_FALSE,sizeof(float) * 8, (void*)(sizeof(float) * 3));
 
-	//启用顶点属性
-	glEnableVertexAttribArray(shader->posLocation);
-	glVertexAttribPointer(
-		shader->posLocation, //顶点属性ID
-		3, //几个数据构成一组
-		GL_FLOAT, //数据类型
-		GL_FALSE,
-		sizeof(float) * 8, //步长
-		(void*)(sizeof(float) * 0) //偏移量，第一组数据的起始位置
-	);
-	//启用顶点属性
-	glEnableVertexAttribArray(shader->colorLocation);
-	glVertexAttribPointer(shader->colorLocation, 3, GL_FLOAT, GL_FALSE,sizeof(float) * 8, (void*)(sizeof(float) * 3));
+	////启用顶点属性
+	//glEnableVertexAttribArray(shader->texcoordLocation);
+	//glVertexAttribPointer(shader->texcoordLocation, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)(sizeof(float) * 6));
 
-	//启用顶点属性
-	glEnableVertexAttribArray(shader->texcoordLocation);
-	glVertexAttribPointer(shader->texcoordLocation, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)(sizeof(float) * 6));
+	//glBindBuffer(GL_ARRAY_BUFFER, 0);
+	//glBindVertexArray(0);
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-
-	EBO = CreateGLBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, mesh->indexCount * sizeof(uint32_t), mesh->indices);
+	/*EBO = CreateGLBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, mesh->indexCount * sizeof(uint32_t), mesh->indices);*/
 
 	QImage img = QImage("assets/tex1.jpg");
 	tex1 = new Texture2D(img.width(), img.height(), GL_RGBA, GL_BGRA, img.bits());
@@ -218,31 +220,31 @@ void QtRendererVideo::Tick()
 
 void QtRendererVideo::Renderer()
 {
+	QMatrix4x4 projMat;
+	projMat.perspective(45, width() / (float)height(), 0.1f, 100);
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	shader->Apply();
-	shader->SetTexture2D("smp1", tex1);
-	shader->SetTexture2D("smp2", tex2);
+	{
+		model->ApplyShader(shader2);
+		model->SetTexture2D("smp1", tex1);
+		model->SetTexture2D("smp2", tex2);
+		model->SetPosition(0, 0, -2);
+		model->SetRotation(30, 0, 1, 0);
+		model->SetScale(2, 2, 2);
+		model->Draw(camera.GetViewMat().constData(), projMat.constData());
+	}
 
+	{
+		model2->ApplyShader(shader);
+		model2->SetTexture2D("smp1", tex1);
+		model2->SetTexture2D("smp2", tex2);
+		model2->SetPosition(4, 0, -2);
+		model2->SetRotation(-30, 0, 1, 0);
+		model2->SetScale(2, 2, 2);
+		model2->Draw(camera.GetViewMat().constData(), projMat.constData());
+	}
 
-	QMatrix4x4 modelMat;
-	QMatrix4x4 projMat;
-
-	modelMat.translate(0, 0, -2);
-	modelMat.rotate(0, QVector3D(0, 0, 1));
-	modelMat.scale(1, 1, 1);
-
-	
-	projMat.perspective(45, width() / (float)height(), 0.1f, 100);
-
-	glUniformMatrix4fv(shader->modelLocation, 1, GL_FALSE, modelMat.constData());
-	glUniformMatrix4fv(shader->viewLocation, 1, GL_FALSE, camera.GetViewMat().constData());
-	glUniformMatrix4fv(shader->projLocation, 1, GL_FALSE, projMat.constData());
-	glBindVertexArray(VAO);
-	//glDrawArrays(GL_TRIANGLES, 0, mesh->vertexCount);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glDrawElements(GL_TRIANGLES, mesh->indexCount, GL_UNSIGNED_INT, NULL);
 	SwapBuffers(dc);
 }

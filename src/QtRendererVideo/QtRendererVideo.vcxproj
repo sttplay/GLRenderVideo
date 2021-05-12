@@ -116,6 +116,7 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="GLTools.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Model.cpp" />
     <ClCompile Include="QtRendererVideo.cpp" />
     <ClCompile Include="Shader.cpp" />
     <ClCompile Include="Texture2D.cpp" />
@@ -132,6 +133,7 @@
   <ItemGroup>
     <ClInclude Include="Camera.h" />
     <ClInclude Include="GLTools.h" />
+    <ClInclude Include="Model.h" />
     <ClInclude Include="QtEvent.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="Texture2D.h" />
