@@ -67,4 +67,6 @@ private:
 	QPoint lastPoint;
 
 	//struct Mesh *mesh = NULL;
+
+	class VideoCapture *capture = nullptr;
 };

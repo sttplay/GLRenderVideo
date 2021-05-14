@@ -5,6 +5,7 @@
 #include <QDebug>
 #include <QTimer>
 #include <QDateTime>
+#include "VideoCapture.h"
 #pragma comment(lib, "glew32.lib")
 #pragma comment(lib, "opengl32.lib")
 QtRendererVideo::QtRendererVideo(QWidget *parent)
@@ -142,7 +143,9 @@ bool QtRendererVideo::event(QEvent* event)
 
 void QtRendererVideo::InitializeGL()
 {
-
+	capture = new VideoCapture();
+	if (!capture->Open("test.mp4", PIX_FMT_RGBA))
+		throw;
 	shader = new Shader("assets/vertexShader.glsl", "assets/fragmentShader.glsl");
 	shader2 = new Shader("assets/vertexShader.glsl", "assets/fragmentShader2.glsl");
 	model = new Model("assets/teapot.obj");
@@ -226,6 +229,18 @@ void QtRendererVideo::Renderer()
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+retry:
+
+	AVFrame *frame = nullptr;
+	int ret = capture->Retrieve(frame);
+	if (ret < 0)
+		throw;
+	if (ret == 0)
+	{
+		capture->Seek(0);
+		goto retry;
+	}
+	qDebug() << frame->pts;
 	{
 		model->ApplyShader(shader2);
 		model->SetTexture2D("smp1", tex1);
