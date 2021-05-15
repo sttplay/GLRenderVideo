@@ -86,6 +86,9 @@ void QtRendererVideo::keyReleaseEvent(QKeyEvent *event)
 		isPressQ = false;
 	if (event->key() == Qt::Key_E)
 		isPressE = false;
+
+	if (event->key() == Qt::Key_Space)
+		isVR360 = !isVR360;
 }
 
 void QtRendererVideo::mousePressEvent(QMouseEvent *event)
@@ -144,47 +147,22 @@ bool QtRendererVideo::event(QEvent* event)
 void QtRendererVideo::InitializeGL()
 {
 	capture = new VideoCapture();
-	if (!capture->Open("test.mp4", PIX_FMT_RGBA))
+	if (!capture->Open("test.flv", PIX_FMT_YUV420P))
 		throw;
-	shader = new Shader("assets/vertexShader.glsl", "assets/fragmentShader.glsl");
-	shader2 = new Shader("assets/vertexShader.glsl", "assets/fragmentShader2.glsl");
-	model = new Model("assets/teapot.obj");
-	model2 = new Model("assets/quad.obj");
-	/*glGenVertexArrays(1, &VAO);
-	glBindVertexArray(VAO);*/
-
-	/*mesh = LoadObjModel("assets/teapot.obj", true);
-	VBO = CreateGLBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, mesh->vertexCount * sizeof(Vertex), mesh->vertices);*/
-	//glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-	////启用顶点属性
-	//glEnableVertexAttribArray(shader->posLocation);
-	//glVertexAttribPointer(
-	//	shader->posLocation, //顶点属性ID
-	//	3, //几个数据构成一组
-	//	GL_FLOAT, //数据类型
-	//	GL_FALSE,
-	//	sizeof(float) * 8, //步长
-	//	(void*)(sizeof(float) * 0) //偏移量，第一组数据的起始位置
-	//);
-	////启用顶点属性
-	//glEnableVertexAttribArray(shader->colorLocation);
-	//glVertexAttribPointer(shader->colorLocation, 3, GL_FLOAT, GL_FALSE,sizeof(float) * 8, (void*)(sizeof(float) * 3));
-
-	////启用顶点属性
-	//glEnableVertexAttribArray(shader->texcoordLocation);
-	//glVertexAttribPointer(shader->texcoordLocation, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 8, (void*)(sizeof(float) * 6));
-
-	//glBindBuffer(GL_ARRAY_BUFFER, 0);
-	//glBindVertexArray(0);
-
-	/*EBO = CreateGLBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_STATIC_DRAW, mesh->indexCount * sizeof(uint32_t), mesh->indices);*/
-
-	QImage img = QImage("assets/tex1.jpg");
-	tex1 = new Texture2D(img.width(), img.height(), GL_RGBA, GL_BGRA, img.bits());
 	
-	QImage img2 = QImage("assets/lollogo.png");
-	tex2 = new Texture2D(img2.width(), img2.height(), GL_RGBA, GL_BGRA, img2.bits());
+	quadModel = new Model("assets/quad.obj");
+	sphereModel = new Model("assets/sphere.obj");
+
+	if (capture->formatType == PIX_FMT_YUV420P)
+	{
+		shader = new Shader("assets/vertexShader.glsl", "assets/VideoShader/fragmentShader_yuv.glsl");
+		tex1 = new Texture2D(capture->width, capture->height, GL_LUMINANCE, GL_LUMINANCE, NULL);
+
+		tex2 = new Texture2D(capture->width / 2, capture->height / 2, GL_LUMINANCE, GL_LUMINANCE, NULL);
+
+		tex3 = new Texture2D(capture->width / 2, capture->height / 2, GL_LUMINANCE, GL_LUMINANCE, NULL);
+	}
+	
 
 	
 
@@ -224,7 +202,7 @@ void QtRendererVideo::Tick()
 void QtRendererVideo::Renderer()
 {
 	QMatrix4x4 projMat;
-	projMat.perspective(45, width() / (float)height(), 0.1f, 100);
+	projMat.perspective(60, width() / (float)height(), 0.1f, 100);
 
 	glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -240,26 +218,21 @@ retry:
 		capture->Seek(0);
 		goto retry;
 	}
-	qDebug() << frame->pts;
+	
+	Model *model = isVR360 ? sphereModel : quadModel;
+	const float *_videMat = isVR360 ? camera.GetViewMat().constData() : QMatrix4x4().constData();
+	const float *_projMat = isVR360 ? projMat.constData() : QMatrix4x4().constData();
+	if (capture->formatType == PIX_FMT_YUV420P)
 	{
-		model->ApplyShader(shader2);
+		tex1->UpdateTexture2D(frame->width, frame->height, frame->linesize[0], frame->data[0]);
+		tex2->UpdateTexture2D(frame->width / 2, frame->height / 2, frame->linesize[1], frame->data[1]);
+		tex3->UpdateTexture2D(frame->width / 2, frame->height / 2, frame->linesize[2], frame->data[2]);
+
+		model->ApplyShader(shader);
 		model->SetTexture2D("smp1", tex1);
 		model->SetTexture2D("smp2", tex2);
-		model->SetPosition(0, 0, -2);
-		model->SetRotation(30, 0, 1, 0);
-		model->SetScale(2, 2, 2);
-		model->Draw(camera.GetViewMat().constData(), projMat.constData());
+		model->SetTexture2D("smp3", tex3);
+		model->Draw(_videMat, _projMat);
 	}
-
-	{
-		model2->ApplyShader(shader);
-		model2->SetTexture2D("smp1", tex1);
-		model2->SetTexture2D("smp2", tex2);
-		model2->SetPosition(4, 0, -2);
-		model2->SetRotation(-30, 0, 1, 0);
-		model2->SetScale(2, 2, 2);
-		model2->Draw(camera.GetViewMat().constData(), projMat.constData());
-	}
-
 	SwapBuffers(dc);
 }

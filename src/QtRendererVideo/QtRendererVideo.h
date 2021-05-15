@@ -53,10 +53,10 @@ private:
 	HWND hwnd;
 
 
-	Shader *shader = NULL, *shader2 = NULL;
+	Shader *shader = NULL /**shader2 = NULL*/;
 	//GLuint VBO, VAO, EBO;
-	Texture2D* tex1, *tex2;
-	Model *model = NULL, *model2 = NULL;
+	Texture2D* tex1, *tex2, *tex3;
+	Model *quadModel = NULL, *sphereModel = NULL;
 
 	Camera camera;
 
@@ -69,4 +69,6 @@ private:
 	//struct Mesh *mesh = NULL;
 
 	class VideoCapture *capture = nullptr;
+
+	bool isVR360 = false;
 };
