@@ -24,6 +24,8 @@ void Camera::SetPosition(float x, float y, float z)
 
 void Camera::SetRotation(float pitch, float yaw, float roll /*= 0*/)
 {
+	if (pitch < -80) pitch = -80;
+	if (pitch > 80) pitch = 80;
 	rotation.setX(pitch);
 	rotation.setY(yaw);
 	rotation.setZ(roll);

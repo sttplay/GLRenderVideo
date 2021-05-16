@@ -143,39 +143,6 @@ bool QtRendererVideo::event(QEvent* event)
 }
 
 
-
-void QtRendererVideo::InitializeGL()
-{
-	capture = new VideoCapture();
-	if (!capture->Open("test.flv", PIX_FMT_YUV420P))
-		throw;
-	
-	quadModel = new Model("assets/quad.obj");
-	sphereModel = new Model("assets/sphere.obj");
-
-	if (capture->formatType == PIX_FMT_YUV420P)
-	{
-		shader = new Shader("assets/vertexShader.glsl", "assets/VideoShader/fragmentShader_yuv.glsl");
-		tex1 = new Texture2D(capture->width, capture->height, GL_LUMINANCE, GL_LUMINANCE, NULL);
-
-		tex2 = new Texture2D(capture->width / 2, capture->height / 2, GL_LUMINANCE, GL_LUMINANCE, NULL);
-
-		tex3 = new Texture2D(capture->width / 2, capture->height / 2, GL_LUMINANCE, GL_LUMINANCE, NULL);
-	}
-	
-
-	
-
-	glEnable(GL_DEPTH_TEST);
-	//启用面剔除
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	glPolygonMode(GL_FRONT, GL_FILL);
-	
-	CheckError();
-}
-
-
 void QtRendererVideo::Tick()
 {
 	static long long lastts = 0;
@@ -198,6 +165,56 @@ void QtRendererVideo::Tick()
 		camera.Translate(0, -speed * dt, 0);
 	GLUpdate();
 }
+
+
+void QtRendererVideo::InitializeGL()
+{
+	capture = new VideoCapture();
+	if (!capture->Open("test.flv", PIX_FMT_YUVJ420P))
+		throw;
+	
+	quadModel = new Model("assets/quad.obj");
+	sphereModel = new Model("assets/sphere.obj");
+
+	if (capture->formatType == PIX_FMT_YUV420P || capture->formatType == PIX_FMT_YUVJ420P)
+	{
+		shader = new Shader("assets/vertexShader.glsl", "assets/VideoShader/fragmentShader_yuv.glsl");
+		tex1 = new Texture2D(capture->width, capture->height, GL_LUMINANCE, GL_LUMINANCE, NULL);
+
+		tex2 = new Texture2D(capture->width / 2, capture->height / 2, GL_LUMINANCE, GL_LUMINANCE, NULL);
+
+		tex3 = new Texture2D(capture->width / 2, capture->height / 2, GL_LUMINANCE, GL_LUMINANCE, NULL);
+	}
+	else if (capture->formatType == PIX_FMT_YUV422P || capture->formatType == PIX_FMT_YUVJ422P)
+	{
+		shader = new Shader("assets/vertexShader.glsl", "assets/VideoShader/fragmentShader_yuv.glsl");
+		tex1 = new Texture2D(capture->width, capture->height, GL_LUMINANCE, GL_LUMINANCE, NULL);
+
+		tex2 = new Texture2D(capture->width / 2, capture->height, GL_LUMINANCE, GL_LUMINANCE, NULL);
+
+		tex3 = new Texture2D(capture->width / 2, capture->height, GL_LUMINANCE, GL_LUMINANCE, NULL);
+	}
+	else if (capture->formatType == PIX_FMT_YUV444P || capture->formatType == PIX_FMT_YUVJ444P)
+	{
+		shader = new Shader("assets/vertexShader.glsl", "assets/VideoShader/fragmentShader_yuv.glsl");
+		tex1 = new Texture2D(capture->width, capture->height, GL_LUMINANCE, GL_LUMINANCE, NULL);
+
+		tex2 = new Texture2D(capture->width, capture->height, GL_LUMINANCE, GL_LUMINANCE, NULL);
+
+		tex3 = new Texture2D(capture->width, capture->height, GL_LUMINANCE, GL_LUMINANCE, NULL);
+	}
+
+	
+
+	glEnable(GL_DEPTH_TEST);
+	//启用面剔除
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	glPolygonMode(GL_FRONT, GL_FILL);
+	
+	CheckError();
+}
+
 
 void QtRendererVideo::Renderer()
 {
@@ -222,11 +239,35 @@ retry:
 	Model *model = isVR360 ? sphereModel : quadModel;
 	const float *_videMat = isVR360 ? camera.GetViewMat().constData() : QMatrix4x4().constData();
 	const float *_projMat = isVR360 ? projMat.constData() : QMatrix4x4().constData();
-	if (capture->formatType == PIX_FMT_YUV420P)
+	if (capture->formatType == PIX_FMT_YUV420P || capture->formatType == PIX_FMT_YUVJ420P)
 	{
 		tex1->UpdateTexture2D(frame->width, frame->height, frame->linesize[0], frame->data[0]);
 		tex2->UpdateTexture2D(frame->width / 2, frame->height / 2, frame->linesize[1], frame->data[1]);
 		tex3->UpdateTexture2D(frame->width / 2, frame->height / 2, frame->linesize[2], frame->data[2]);
+
+		model->ApplyShader(shader);
+		model->SetTexture2D("smp1", tex1);
+		model->SetTexture2D("smp2", tex2);
+		model->SetTexture2D("smp3", tex3);
+		model->Draw(_videMat, _projMat);
+	}
+	else if (capture->formatType == PIX_FMT_YUV422P || capture->formatType == PIX_FMT_YUVJ422P)
+	{
+		tex1->UpdateTexture2D(frame->width, frame->height, frame->linesize[0], frame->data[0]);
+		tex2->UpdateTexture2D(frame->width / 2, frame->height, frame->linesize[1], frame->data[1]);
+		tex3->UpdateTexture2D(frame->width / 2, frame->height, frame->linesize[2], frame->data[2]);
+
+		model->ApplyShader(shader);
+		model->SetTexture2D("smp1", tex1);
+		model->SetTexture2D("smp2", tex2);
+		model->SetTexture2D("smp3", tex3);
+		model->Draw(_videMat, _projMat);
+	}
+	else if (capture->formatType == PIX_FMT_YUV444P || capture->formatType == PIX_FMT_YUVJ444P)
+	{
+		tex1->UpdateTexture2D(frame->width, frame->height, frame->linesize[0], frame->data[0]);
+		tex2->UpdateTexture2D(frame->width, frame->height, frame->linesize[1], frame->data[1]);
+		tex3->UpdateTexture2D(frame->width, frame->height, frame->linesize[2], frame->data[2]);
 
 		model->ApplyShader(shader);
 		model->SetTexture2D("smp1", tex1);
