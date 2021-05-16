@@ -170,7 +170,7 @@ void QtRendererVideo::Tick()
 void QtRendererVideo::InitializeGL()
 {
 	capture = new VideoCapture();
-	if (!capture->Open("test.flv", PIX_FMT_BGR))
+	if (!capture->Open("test.flv", PIX_FMT_AUTO))
 		throw;
 	
 	quadModel = new Model("assets/quad.obj");
@@ -246,6 +246,27 @@ void QtRendererVideo::InitializeGL()
 		shader = new Shader("assets/vertexShader.glsl", "assets/VideoShader/fragmentShader_bgr.glsl");
 		tex1 = new Texture2D(capture->width, capture->height, GL_RGB, GL_RGB, NULL);
 	}
+	else if (capture->formatType == PIX_FMT_RGBA)
+	{
+		shader = new Shader("assets/vertexShader.glsl", "assets/VideoShader/fragmentShader_rgba.glsl");
+		tex1 = new Texture2D(capture->width, capture->height, GL_RGBA, GL_RGBA, NULL);
+	}
+	else if (capture->formatType == PIX_FMT_BGRA)
+	{
+		shader = new Shader("assets/vertexShader.glsl", "assets/VideoShader/fragmentShader_bgra.glsl");
+		tex1 = new Texture2D(capture->width, capture->height, GL_RGBA, GL_RGBA, NULL);
+	}
+	else if (capture->formatType == PIX_FMT_ARGB)
+	{
+		shader = new Shader("assets/vertexShader.glsl", "assets/VideoShader/fragmentShader_argb.glsl");
+		tex1 = new Texture2D(capture->width, capture->height, GL_RGBA, GL_RGBA, NULL);
+	}
+	else if (capture->formatType == PIX_FMT_ABGR)
+	{
+		shader = new Shader("assets/vertexShader.glsl", "assets/VideoShader/fragmentShader_abgr.glsl");
+		tex1 = new Texture2D(capture->width, capture->height, GL_RGBA, GL_RGBA, NULL);
+	}
+
 	glEnable(GL_DEPTH_TEST);
 	//ÆôÓÃÃæÌÞ³ý
 	glEnable(GL_CULL_FACE);
@@ -348,6 +369,14 @@ retry:
 	else if (capture->formatType == PIX_FMT_RGB || capture->formatType == PIX_FMT_BGR)
 	{
 		tex1->UpdateTexture2D(frame->width, frame->height, frame->linesize[0] / 3, frame->data[0]);
+
+		model->ApplyShader(shader);
+		model->SetTexture2D("smp1", tex1);
+		model->Draw(_videMat, _projMat);
+	}
+	else if (capture->formatType == PIX_FMT_RGBA || capture->formatType == PIX_FMT_BGRA || capture->formatType == PIX_FMT_ARGB || capture->formatType == PIX_FMT_ABGR)
+	{
+		tex1->UpdateTexture2D(frame->width, frame->height, frame->linesize[0] / 4, frame->data[0]);
 
 		model->ApplyShader(shader);
 		model->SetTexture2D("smp1", tex1);
