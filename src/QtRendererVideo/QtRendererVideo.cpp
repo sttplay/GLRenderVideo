@@ -170,7 +170,7 @@ void QtRendererVideo::Tick()
 void QtRendererVideo::InitializeGL()
 {
 	capture = new VideoCapture();
-	if (!capture->Open("test.flv", PIX_FMT_UYVY422))
+	if (!capture->Open("test.flv", PIX_FMT_NV21))
 		throw;
 	
 	quadModel = new Model("assets/quad.obj");
@@ -217,7 +217,20 @@ void QtRendererVideo::InitializeGL()
 
 		tex2 = new Texture2D(capture->width / 2, capture->height, GL_RGBA, GL_RGBA, NULL);
 	}
-	
+	else if (capture->formatType == PIX_FMT_NV12)
+	{
+		shader = new Shader("assets/vertexShader.glsl", "assets/VideoShader/fragmentShader_nv12.glsl");
+		tex1 = new Texture2D(capture->width, capture->height, GL_LUMINANCE, GL_LUMINANCE, NULL);
+
+		tex2 = new Texture2D(capture->width / 2, capture->height / 2, GL_LUMINANCE_ALPHA, GL_LUMINANCE_ALPHA, NULL);
+	}
+	else if (capture->formatType == PIX_FMT_NV21)
+	{
+		shader = new Shader("assets/vertexShader.glsl", "assets/VideoShader/fragmentShader_nv21.glsl");
+		tex1 = new Texture2D(capture->width, capture->height, GL_LUMINANCE, GL_LUMINANCE, NULL);
+
+		tex2 = new Texture2D(capture->width / 2, capture->height / 2, GL_LUMINANCE_ALPHA, GL_LUMINANCE_ALPHA, NULL);
+	}
 
 	glEnable(GL_DEPTH_TEST);
 	//ÆôÓÃÃæÌÞ³ý
@@ -292,6 +305,17 @@ retry:
 	{
 		tex1->UpdateTexture2D(frame->width, frame->height, frame->linesize[0] / 2, frame->data[0]);
 		tex2->UpdateTexture2D(frame->width / 2, frame->height, frame->linesize[0] / 4, frame->data[0]);
+
+
+		model->ApplyShader(shader);
+		model->SetTexture2D("smp1", tex1);
+		model->SetTexture2D("smp2", tex2);
+		model->Draw(_videMat, _projMat);
+	}
+	else if (capture->formatType == PIX_FMT_NV12 || capture->formatType == PIX_FMT_NV21)
+	{
+		tex1->UpdateTexture2D(frame->width, frame->height, frame->linesize[0], frame->data[0]);
+		tex2->UpdateTexture2D(frame->width / 2, frame->height / 2, frame->linesize[1] / 2, frame->data[1]);
 
 
 		model->ApplyShader(shader);
