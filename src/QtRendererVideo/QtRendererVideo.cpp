@@ -170,7 +170,7 @@ void QtRendererVideo::Tick()
 void QtRendererVideo::InitializeGL()
 {
 	capture = new VideoCapture();
-	if (!capture->Open("test.flv", PIX_FMT_AUTO))
+	if (!capture->Open("vrvideo.mp4", PIX_FMT_AUTO))
 		throw;
 	
 	quadModel = new Model("assets/quad.obj");
